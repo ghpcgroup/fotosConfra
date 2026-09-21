@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fotos Confra</title>
+    <!-- Fontes do Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Estilos Customizados -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TELA INICIAL: Escolha de modo -->
+    <div id="homeScreen" class="screen active">
+        <div class="glass-card">
+            <!-- Espaço reservado para o Logo da GHPC -->
+            <img src="logo.png" alt="Logo GHPC" class="app-logo" id="logo-placeholder" style="max-height: 50px; margin-bottom: 20px;">
+            <h1>Fotos <span>Confra</span></h1>
+            <p>Compartilhe seus melhores momentos com a galera!</p>
+            <div class="input-group">
+                <input type="text" id="nomeInput" class="input-field" placeholder="Digite seu nome" />
+            </div>
+            <div class="btn-group">
+                <button id="btnUploadMode" class="btn primary"><i class="fa-solid fa-camera-retro"></i> Enviar Fotos</button>
+                <button id="btnPresentationMode" class="btn secondary"><i class="fa-solid fa-display"></i> Modo Telão</button>
+                <button id="btnAdminMode" class="btn-icon" style="margin-top:15px;"><i class="fa-solid fa-gear"></i> Gerenciar Fotos</button>
+                <button id="btnQrMode" class="btn-icon" style="margin-top:5px;"><i class="fa-solid fa-qrcode"></i> Criar Desafios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE UPLOAD -->
+    <div id="uploadScreen" class="screen hidden">
+        <header>
+            <button id="btnBackFromUpload" class="btn-icon"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+            <h2>Enviar Foto</h2>
+        </header>
+        <main class="upload-container">
+            <div class="upload-box" id="uploadBox">
+                <div class="upload-icon"><i class="fa-solid fa-camera" style="font-size: 4rem;"></i></div>
+                <p>Toque para escolher ou tire uma foto</p>
+                <input type="file" id="fileInput" accept="image/*" />
+            </div>
+            
+            <div id="previewContainer" class="hidden">
+                <img id="imagePreview" src="" alt="Pré-visualização da foto">
+                <button id="btnSubmitPhoto" class="btn primary animate-pulse"><i class="fa-solid fa-paper-plane"></i> Enviar Foto</button>
+            </div>
+
+            <!-- Loader e Mensagens -->
+            <div id="uploadStatus" class="status-msg hidden">Enviando...</div>
+        </main>
+    </div>
+
+    <!-- TELA DE APRESENTAÇÃO (CARROSSEL) -->
+    <div id="presentationScreen" class="screen hidden">
+        <button id="btnExitPresentation" class="btn-icon exit-btn"><i class="fa-solid fa-xmark"></i> Fechar</button>
+        <div class="carousel-container" id="carouselContainer">
+            <div class="empty-state" id="emptyState">
+                <h1>Aguardando fotos...</h1>
+                <p>Nenhuma foto enviada ainda.</p>
+            </div>
+            <!-- Imagens serão inseridas aqui via JS -->
+            <img id="carouselImg" src="" class="carousel-image hidden" />
+            <div id="watermark" class="watermark hidden"></div>
+            <div id="challengeBadge" class="challenge-badge hidden"></div>
+        </div>
+    </div>
+
+    <!-- TELA GERADOR DE QR CODE -->
+    <div id="qrGeneratorScreen" class="screen hidden">
+        <header>
+            <button id="btnBackFromQr" class="btn-icon"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+            <h2>Gerar Desafio</h2>
+        </header>
+        <main class="qr-container glass-card" style="margin-top: 20px;">
+            <p>Defina um desafio para quem escanear o QR Code</p>
+            <div class="input-group">
+                <input type="text" id="desafioInput" class="input-field" placeholder="Ex: Tire uma foto sua com seu copo" />
+            </div>
+            <button id="btnGenerateQr" class="btn primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Gerar QR Code</button>
+            
+            <div id="qrResultContainer" class="hidden" style="margin-top: 20px;">
+                <img id="qrCodeImage" src="" alt="QR Code" style="width: 200px; height: 200px; border-radius: 12px; border: 4px solid #ddd;" />
+                <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-main);">Escaneie para aceitar o desafio!</p>
+                <div style="margin-top: 15px; display: flex; justify-content: center;">
+                    <button id="btnDownloadQr" class="btn secondary" style="font-size: 0.9rem; padding: 10px 15px;"><i class="fa-solid fa-download"></i> Baixar Imagem</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- TELA DE DESAFIO (Aberta via QR Code) -->
+    <div id="challengeScreen" class="screen hidden">
+        <div class="glass-card">
+            <h1 style="color: var(--primary);">Desafio <i class="fa-solid fa-star"></i></h1>
+            <p id="challengeTextDisplay" style="font-size: 1.2rem; font-weight: 500; color: var(--text-main); margin-bottom: 20px; line-height: 1.4;"></p>
+            <div class="input-group">
+                <input type="text" id="nomeDesafioInput" class="input-field" placeholder="Digite seu nome" />
+            </div>
+            <div class="btn-group">
+                <button id="btnAcceptChallenge" class="btn primary"><i class="fa-solid fa-check"></i> Aceitar Desafio</button>
+                <button id="btnSkipChallenge" class="btn secondary">Pular desafio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE GERENCIAMENTO (ADMIN) -->
+    <div id="adminScreen" class="screen hidden">
+        <header>
+            <button id="btnBackFromAdmin" class="btn-icon"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+            <h2>Gerenciar Fotos</h2>
+        </header>
+        <main class="admin-container">
+            <div id="adminGrid" class="admin-grid">
+                <!-- Fotos carregadas aqui -->
+            </div>
+        </main>
+    </div>
+
+    <!-- SDK Firebase Module import via type="module" -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
