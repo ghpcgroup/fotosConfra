@@ -41,15 +41,24 @@
             <h2>Enviar Foto</h2>
         </header>
         <main class="upload-container">
-            <div class="upload-box" id="uploadBox">
+            <div class="upload-box" id="uploadBox" style="cursor: default;">
                 <div class="upload-icon"><i class="fa-solid fa-camera" style="font-size: 4rem;"></i></div>
-                <p>Toque para escolher ou tire uma foto</p>
-                <input type="file" id="fileInput" accept="image/*" />
+                <p>Escolha como deseja enviar sua foto</p>
+                <div class="action-buttons" style="display: flex; gap: 10px; margin-top: 20px; justify-content: center; flex-wrap: wrap;">
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" />
+                    <button id="btnOpenCamera" class="btn primary" style="flex: 1; min-width: 120px;"><i class="fa-solid fa-camera"></i> Câmera</button>
+                    
+                    <input type="file" id="galleryInput" accept="image/*" style="display: none;" />
+                    <button id="btnOpenGallery" class="btn secondary" style="flex: 1; min-width: 120px;"><i class="fa-solid fa-images"></i> Galeria</button>
+                </div>
             </div>
             
             <div id="previewContainer" class="hidden">
                 <img id="imagePreview" src="" alt="Pré-visualização da foto">
-                <button id="btnSubmitPhoto" class="btn primary animate-pulse"><i class="fa-solid fa-paper-plane"></i> Enviar Foto</button>
+                <div class="action-buttons" style="display: flex; gap: 10px; margin-top: 20px; justify-content: space-between; flex-wrap: wrap;">
+                    <button id="btnDiscardPhoto" class="btn secondary" style="flex: 1; min-width: 120px;"><i class="fa-solid fa-trash"></i> Descartar</button>
+                    <button id="btnSubmitPhoto" class="btn primary animate-pulse" style="flex: 1; min-width: 120px;"><i class="fa-solid fa-paper-plane"></i> Enviar Foto</button>
+                </div>
             </div>
 
             <!-- Loader e Mensagens -->

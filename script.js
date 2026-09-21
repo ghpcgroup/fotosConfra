@@ -202,7 +202,7 @@ btnSkipChallenge.addEventListener('click', () => {
 });
 
 // --- LÓGICA DE UPLOAD ---
-fileInput.addEventListener('change', (e) => {
+const handleFileSelection = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -245,7 +245,33 @@ fileInput.addEventListener('change', (e) => {
         img.src = event.target.result;
     };
     reader.readAsDataURL(file);
-});
+};
+
+const cameraInput = document.getElementById('cameraInput');
+const galleryInput = document.getElementById('galleryInput');
+const btnOpenCamera = document.getElementById('btnOpenCamera');
+const btnOpenGallery = document.getElementById('btnOpenGallery');
+const btnDiscardPhoto = document.getElementById('btnDiscardPhoto');
+
+if(btnOpenCamera) btnOpenCamera.addEventListener('click', () => cameraInput.click());
+if(btnOpenGallery) btnOpenGallery.addEventListener('click', () => galleryInput.click());
+
+if(cameraInput) cameraInput.addEventListener('change', handleFileSelection);
+if(galleryInput) galleryInput.addEventListener('change', handleFileSelection);
+
+if(btnDiscardPhoto) {
+    btnDiscardPhoto.addEventListener('click', () => {
+        // Limpar preview e inputs
+        imagePreview.src = '';
+        currentBase64Image = null;
+        if(cameraInput) cameraInput.value = '';
+        if(galleryInput) galleryInput.value = '';
+        
+        // Voltar para caixa de escolha
+        previewContainer.classList.add('hidden');
+        uploadBox.classList.remove('hidden');
+    });
+}
 
 btnSubmitPhoto.addEventListener('click', async () => {
     if (!currentBase64Image) return;
@@ -280,7 +306,8 @@ btnSubmitPhoto.addEventListener('click', async () => {
 
 function resetUploadForm() {
     currentBase64Image = null;
-    fileInput.value = '';
+    if(cameraInput) cameraInput.value = '';
+    if(galleryInput) galleryInput.value = '';
     imagePreview.src = '';
     previewContainer.classList.add('hidden');
     uploadBox.classList.remove('hidden');
