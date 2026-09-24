@@ -384,7 +384,43 @@ body {
 }
 
 .admin-delete-btn:hover {
-    transform: scale(1.1);
+    background: #dc2626; /* red-600 */
+}
+
+/* Painel de Desafios */
+.challenge-item {
+    background: #ffffff;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.challenge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: default;
+}
+
+.challenge-header h3 {
+    color: var(--primary);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.challenge-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.challenge-body {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Animações */

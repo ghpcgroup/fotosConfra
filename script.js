@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, limit, deleteDoc, doc, where, getDocs } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 // Configuração do Firebase
 const firebaseConfig = {
@@ -19,6 +19,10 @@ const db = getFirestore(app);
 const homeScreen = document.getElementById('homeScreen');
 const uploadScreen = document.getElementById('uploadScreen');
 const presentationScreen = document.getElementById('presentationScreen');
+const adminScreen = document.getElementById('adminScreen');
+const qrGeneratorScreen = document.getElementById('qrGeneratorScreen');
+const challengeScreen = document.getElementById('challengeScreen');
+const challengesAdminScreen = document.getElementById('challengesAdminScreen');
 
 const btnUploadMode = document.getElementById('btnUploadMode');
 const btnPresentationMode = document.getElementById('btnPresentationMode');
@@ -26,21 +30,16 @@ const btnBackFromUpload = document.getElementById('btnBackFromUpload');
 const btnExitPresentation = document.getElementById('btnExitPresentation');
 const btnAdminMode = document.getElementById('btnAdminMode');
 const btnBackFromAdmin = document.getElementById('btnBackFromAdmin');
-const adminScreen = document.getElementById('adminScreen');
 const adminGrid = document.getElementById('adminGrid');
 const watermark = document.getElementById('watermark');
 const nomeInput = document.getElementById('nomeInput');
 
 const btnQrMode = document.getElementById('btnQrMode');
-const qrGeneratorScreen = document.getElementById('qrGeneratorScreen');
 const btnBackFromQr = document.getElementById('btnBackFromQr');
 const desafioInput = document.getElementById('desafioInput');
 const btnGenerateQr = document.getElementById('btnGenerateQr');
-const qrResultContainer = document.getElementById('qrResultContainer');
-const qrCodeImage = document.getElementById('qrCodeImage');
-const btnDownloadQr = document.getElementById('btnDownloadQr');
+const btnChallengesAdminMode = document.getElementById('btnChallengesAdminMode');
 
-const challengeScreen = document.getElementById('challengeScreen');
 const challengeTextDisplay = document.getElementById('challengeTextDisplay');
 const nomeDesafioInput = document.getElementById('nomeDesafioInput');
 const btnAcceptChallenge = document.getElementById('btnAcceptChallenge');
@@ -128,52 +127,34 @@ btnQrMode.addEventListener('click', () => {
 
 btnBackFromQr.addEventListener('click', () => {
     showScreen(homeScreen);
-    qrResultContainer.classList.add('hidden');
     desafioInput.value = '';
 });
 
-btnGenerateQr.addEventListener('click', () => {
+btnGenerateQr.addEventListener('click', async () => {
     const desafioText = desafioInput.value.trim();
     if (!desafioText) {
         alert('Por favor, defina um desafio.');
         return;
     }
     
-    const baseUrl = window.location.origin + window.location.pathname;
-    const finalUrl = `${baseUrl}?desafio=${encodeURIComponent(desafioText)}`;
-    
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(finalUrl)}&margin=10`;
-    qrCodeImage.src = qrUrl;
-    qrResultContainer.classList.remove('hidden');
-});
-
-btnDownloadQr.addEventListener('click', async () => {
     try {
-        const qrUrl = qrCodeImage.src;
-        if (!qrUrl) return;
+        const q = query(collection(db, "desafios"), where("titulo", "==", desafioText));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+            await addDoc(collection(db, "desafios"), {
+                titulo: desafioText,
+                timestamp: serverTimestamp()
+            });
+        }
         
-        const response = await fetch(qrUrl);
-        const blob = await response.blob();
-        
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        
-        // Criar nome sugestivo com o nome do desafio
-        const desafioText = desafioInput.value.trim();
-        const safeName = desafioText.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        a.download = `desafio_${safeName || 'qrcode'}.png`;
-        
-        document.body.appendChild(a);
-        a.click();
-        
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    } catch (e) {
-        console.error("Erro ao baixar o QR Code:", e);
-        // Fallback: se o navegador bloquear o fetch (CORS), abre em nova aba
-        window.open(qrCodeImage.src, '_blank');
+        desafioInput.value = '';
+        const status = document.getElementById('desafioSaveStatus');
+        status.classList.remove('hidden');
+        setTimeout(() => status.classList.add('hidden'), 3000);
+
+    } catch(e) {
+        console.error("Erro ao salvar desafio:", e);
+        alert("Erro ao salvar desafio.");
     }
 });
 
@@ -284,7 +265,6 @@ btnSubmitPhoto.addEventListener('click', async () => {
         await addDoc(collection(db, "fotos"), {
             dataUrl: currentBase64Image,
             author: nomeInput.value.trim() || 'Desconhecido',
-            desafio: currentChallenge || null,
             timestamp: serverTimestamp()
         });
 
@@ -444,5 +424,120 @@ function stopAdminMode() {
     if (unsubscribeAdmin) {
         unsubscribeAdmin();
         unsubscribeAdmin = null;
+    }
+}
+
+// --- LÓGICA DO ADMIN DE DESAFIOS ---
+const challengesList = document.getElementById('challengesList');
+const btnBackFromChallengesAdmin = document.getElementById('btnBackFromChallengesAdmin');
+
+if (btnChallengesAdminMode) {
+    btnChallengesAdminMode.addEventListener('click', () => {
+        showScreen(challengesAdminScreen);
+        loadChallengesAdmin();
+    });
+}
+
+if (btnBackFromChallengesAdmin) {
+    btnBackFromChallengesAdmin.addEventListener('click', () => {
+        showScreen(homeScreen);
+    });
+}
+
+async function loadChallengesAdmin() {
+    challengesList.innerHTML = '<p style="text-align:center;">Carregando desafios...</p>';
+    
+    try {
+        const q = query(collection(db, "desafios"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+        
+        challengesList.innerHTML = '';
+        
+        if (snapshot.empty) {
+            challengesList.innerHTML = '<p style="text-align:center;">Nenhum desafio encontrado.</p>';
+            return;
+        }
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const challengeItem = document.createElement('div');
+            challengeItem.className = 'challenge-item';
+            
+            challengeItem.innerHTML = `
+                <div class="challenge-header">
+                    <h3>${data.titulo}</h3>
+                    <div class="challenge-actions">
+                        <button class="btn secondary generate-inline-qr" title="Gerar QR Code"><i class="fa-solid fa-qrcode"></i> QR Code</button>
+                        <button class="btn-icon delete-challenge-btn" style="color: #dc2626;" title="Excluir Desafio"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="challenge-body hidden" id="qr-body-${docSnap.id}">
+                    <img id="qr-img-${docSnap.id}" src="" alt="QR Code" style="width: 200px; height: 200px; border-radius: 12px; border: 4px solid #ddd;" />
+                    <button class="btn secondary download-inline-qr" style="margin-top: 15px; font-size: 0.9rem; padding: 10px 15px;"><i class="fa-solid fa-download"></i> Baixar Imagem</button>
+                </div>
+            `;
+            
+            // Delete button
+            const deleteBtn = challengeItem.querySelector('.delete-challenge-btn');
+            deleteBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if(confirm('Tem certeza que deseja excluir este desafio?')) {
+                    await deleteDoc(doc(db, "desafios", docSnap.id));
+                    loadChallengesAdmin();
+                }
+            };
+            
+            // Generate QR Code inline button
+            const generateBtn = challengeItem.querySelector('.generate-inline-qr');
+            generateBtn.onclick = (e) => {
+                e.stopPropagation();
+                const bodyElem = document.getElementById(`qr-body-${docSnap.id}`);
+                const imgElem = document.getElementById(`qr-img-${docSnap.id}`);
+                
+                if (!bodyElem.classList.contains('hidden')) {
+                    bodyElem.classList.add('hidden');
+                    return;
+                }
+                
+                // Hide others
+                document.querySelectorAll('.challenge-body').forEach(el => el.classList.add('hidden'));
+                
+                const baseUrl = window.location.origin + window.location.pathname;
+                const finalUrl = `${baseUrl}?desafio=${encodeURIComponent(data.titulo)}`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(finalUrl)}&margin=10`;
+                
+                imgElem.src = qrUrl;
+                bodyElem.classList.remove('hidden');
+            };
+            
+            // Download Inline QR
+            const downloadBtn = challengeItem.querySelector('.download-inline-qr');
+            downloadBtn.onclick = async (e) => {
+                e.stopPropagation();
+                const imgElem = document.getElementById(`qr-img-${docSnap.id}`);
+                const qrUrl = imgElem.src;
+                if (!qrUrl) return;
+                
+                try {
+                    const response = await fetch(qrUrl);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `qrcode_${data.titulo.substring(0, 15).replace(/ /g, '_')}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } catch(err) {
+                    console.error("Erro ao baixar QR code", err);
+                }
+            };
+
+            challengesList.appendChild(challengeItem);
+        });
+    } catch (error) {
+        console.error("Erro ao carregar desafios:", error);
+        challengesList.innerHTML = '<p style="text-align:center; color:red;">Erro ao carregar desafios.</p>';
     }
 }
