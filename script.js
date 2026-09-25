@@ -23,6 +23,7 @@ const adminScreen = document.getElementById('adminScreen');
 const qrGeneratorScreen = document.getElementById('qrGeneratorScreen');
 const challengeScreen = document.getElementById('challengeScreen');
 const challengesAdminScreen = document.getElementById('challengesAdminScreen');
+const rankingScreen = document.getElementById('rankingScreen');
 
 const btnUploadMode = document.getElementById('btnUploadMode');
 const btnPresentationMode = document.getElementById('btnPresentationMode');
@@ -39,6 +40,9 @@ const btnBackFromQr = document.getElementById('btnBackFromQr');
 const desafioInput = document.getElementById('desafioInput');
 const btnGenerateQr = document.getElementById('btnGenerateQr');
 const btnChallengesAdminMode = document.getElementById('btnChallengesAdminMode');
+const btnRankingMode = document.getElementById('btnRankingMode');
+const btnBackFromRanking = document.getElementById('btnBackFromRanking');
+const rankingList = document.getElementById('rankingList');
 
 const challengeTextDisplay = document.getElementById('challengeTextDisplay');
 const nomeDesafioInput = document.getElementById('nomeDesafioInput');
@@ -85,6 +89,8 @@ function showScreen(screen) {
     adminScreen.classList.add('hidden');
     qrGeneratorScreen.classList.add('hidden');
     challengeScreen.classList.add('hidden');
+    challengesAdminScreen.classList.add('hidden');
+    rankingScreen.classList.add('hidden');
     
     screen.classList.remove('hidden');
 }
@@ -539,5 +545,69 @@ async function loadChallengesAdmin() {
     } catch (error) {
         console.error("Erro ao carregar desafios:", error);
         challengesList.innerHTML = '<p style="text-align:center; color:red;">Erro ao carregar desafios.</p>';
+    }
+}
+
+// --- LÓGICA DE RANKING ---
+if (btnRankingMode) {
+    btnRankingMode.addEventListener('click', () => {
+        showScreen(rankingScreen);
+        loadRanking();
+    });
+}
+
+if (btnBackFromRanking) {
+    btnBackFromRanking.addEventListener('click', () => {
+        showScreen(homeScreen);
+    });
+}
+
+async function loadRanking() {
+    rankingList.innerHTML = '<p style="text-align:center;">Carregando ranking...</p>';
+    
+    try {
+        const q = query(collection(db, "fotos"));
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+            rankingList.innerHTML = '<p style="text-align:center;">Nenhuma foto enviada ainda.</p>';
+            return;
+        }
+
+        const counts = {};
+        snapshot.forEach(docSnap => {
+            let author = docSnap.data().author || 'Desconhecido';
+            author = author.trim();
+            if (author === '') author = 'Desconhecido';
+            counts[author] = (counts[author] || 0) + 1;
+        });
+
+        // Transformar em array, ordenar e renderizar
+        const sortedRanking = Object.entries(counts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count);
+
+        rankingList.innerHTML = '';
+        
+        sortedRanking.forEach((item, index) => {
+            const pos = index + 1;
+            let icon = '';
+            if (pos === 1) icon = '🥇 ';
+            else if (pos === 2) icon = '🥈 ';
+            else if (pos === 3) icon = '🥉 ';
+
+            const div = document.createElement('div');
+            div.className = 'ranking-item';
+            div.innerHTML = `
+                <span class="rank-pos">${pos}º</span>
+                <span class="rank-name">${icon}${item.name}</span>
+                <span class="rank-count">${item.count} fotos</span>
+            `;
+            rankingList.appendChild(div);
+        });
+
+    } catch (error) {
+        console.error("Erro ao carregar ranking:", error);
+        rankingList.innerHTML = '<p style="text-align:center; color:red;">Erro ao carregar ranking.</p>';
     }
 }

@@ -439,3 +439,41 @@ body {
     50% { transform: scale(1.02); }
     100% { transform: scale(1); }
 }
+
+/* Lista de Ranking */
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ranking-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fbfd;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    font-weight: 500;
+}
+
+.ranking-item .rank-pos {
+    font-weight: 700;
+    color: var(--primary);
+    width: 30px;
+}
+
+.ranking-item .rank-name {
+    flex: 1;
+    text-align: left;
+}
+
+.ranking-item .rank-count {
+    background: var(--primary);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+

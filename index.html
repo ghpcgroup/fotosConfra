@@ -31,6 +31,7 @@
                 <button id="btnAdminMode" class="btn-icon" style="margin-top:15px;"><i class="fa-solid fa-gear"></i> Gerenciar Fotos</button>
                 <button id="btnQrMode" class="btn-icon" style="margin-top:5px;"><i class="fa-solid fa-plus"></i> Criar Desafios</button>
                 <button id="btnChallengesAdminMode" class="btn-icon" style="margin-top:5px;"><i class="fa-solid fa-list-check"></i> Gerenciar Desafios</button>
+                <button id="btnRankingMode" class="btn-icon" style="margin-top:5px;"><i class="fa-solid fa-trophy"></i> Ranking de Fotos</button>
             </div>
         </div>
     </div>
@@ -135,6 +136,20 @@
         <main class="admin-container" style="max-width: 800px;">
             <div id="challengesList" style="width: 100%; display: flex; flex-direction: column; gap: 15px;">
                 <!-- Lista de desafios via JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- TELA DE RANKING -->
+    <div id="rankingScreen" class="screen hidden">
+        <header>
+            <button id="btnBackFromRanking" class="btn-icon"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+            <h2>Ranking</h2>
+        </header>
+        <main class="ranking-container glass-card" style="max-width: 600px; margin-top: 20px;">
+            <p>Quem mandou mais fotos?</p>
+            <div id="rankingList" class="ranking-list" style="margin-top: 20px;">
+                <!-- Lista de ranking via JS -->
             </div>
         </main>
     </div>
